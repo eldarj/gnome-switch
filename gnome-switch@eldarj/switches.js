@@ -500,11 +500,13 @@ export const SwitchController = GObject.registerClass({
     }
 
     // ── Large text ────────────────────────────────────────────────────────────
-    isLargeText()     { return this._a11yIface.get_boolean('large-text'); }
-    toggleLargeText() { this._a11yIface.set_boolean('large-text', !this.isLargeText()); }
+    isLargeText()     { return this._iface.get_double('text-scaling-factor') >= 1.25; }
+    toggleLargeText() {
+        this._iface.set_double('text-scaling-factor', this.isLargeText() ? 1.0 : 1.25);
+    }
     watchLargeText(cb) {
-        const id = this._a11yIface.connect('changed::large-text', cb);
-        return () => this._a11yIface.disconnect(id);
+        const id = this._iface.connect('changed::text-scaling-factor', cb);
+        return () => this._iface.disconnect(id);
     }
 
     // ── Brightness (0–1, -1 if unavailable) ──────────────────────────────────

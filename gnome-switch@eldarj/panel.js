@@ -323,7 +323,6 @@ class SwitchIndicator extends PanelMenu.Button {
     _buildMenu() {
         // Clear existing content
         this.menu.removeAll();
-        this.menu.box.style_class = 'popup-menu-box gs-menu-box';
 
         const item = new PopupMenu.PopupBaseMenuItem({
             reactive: false,
