@@ -1,0 +1,10 @@
+{
+  "name": "Switch",
+  "description": "Quick toggles and sliders for your GNOME desktop — dark mode, night light, DND, keep awake, volume, brightness, Bluetooth, Wi-Fi and more in one panel.",
+  "uuid": "gnome-switch@eldarj",
+  "shell-version": ["46", "47", "48", "49"],
+  "version": 1,
+  "url": "https://github.com/eldarj/gnome-switch",
+  "settings-schema": "org.gnome.shell.extensions.gnome-switch",
+  "gettext-domain": "gnome-switch"
+}

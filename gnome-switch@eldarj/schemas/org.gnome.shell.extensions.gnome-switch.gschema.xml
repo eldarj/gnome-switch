@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.gnome-switch"
+          path="/org/gnome/shell/extensions/gnome-switch/">
+
+    <key name="visible-switches" type="as">
+      <default>['dark-mode','night-light','high-contrast','reduce-animations','hot-corners',
+                'output-mute','mic-mute',
+                'wifi','bluetooth','airplane-mode','vpn','location',
+                'keep-awake','auto-suspend','keyboard-backlight',
+                'dnd','screen-lock','lock-now',
+                'touchpad','magnifier','large-text']</default>
+      <summary>Visible switches</summary>
+      <description>List of switch IDs shown in the panel, in display order.</description>
+    </key>
+
+    <key name="columns" type="i">
+      <range min="2" max="4"/>
+      <default>3</default>
+      <summary>Grid columns</summary>
+      <description>Number of tile columns in the switch grid.</description>
+    </key>
+
+    <key name="show-value-labels" type="b">
+      <default>true</default>
+      <summary>Show value labels on sliders</summary>
+      <description>Show percentage or value label next to each slider.</description>
+    </key>
+
+  </schema>
+</schemalist>
