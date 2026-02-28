@@ -1,8 +1,8 @@
 /*
  * panel.js — SwitchIndicator (panel button + dropdown)
  *
- * Builds the tile grid, slider rows, power-mode chip row, and MPRIS strip
- * inside a standard PanelMenu.Button popup.
+ * Vertical list of tile-style rows: icon · label/subtitle · toggle pill.
+ * Slider rows and power-mode chips follow the same visual language.
  */
 
 import GObject from 'gi://GObject';
@@ -65,8 +65,8 @@ function _applyAccentCss(color) {
     }
 
     const css = [
-        `.gs-tile.active { background-color: ${color}; }`,
-        `.gs-chip.active { background-color: ${color}; }`,
+        `.gs-toggle.active { background-color: ${color}; }`,
+        `.gs-chip.active   { background-color: ${color}; }`,
     ].join('\n');
 
     GLib.file_set_contents(ACCENT_CSS_PATH, css);
@@ -83,43 +83,86 @@ function _clearAccentCss() {
     _accentFile = null;
 }
 
-// ─── SwitchTile ───────────────────────────────────────────────────────────────
+// ─── TogglePill ───────────────────────────────────────────────────────────────
 
-const SwitchTile = GObject.registerClass(
-class SwitchTile extends St.Button {
+const TogglePill = GObject.registerClass(
+class TogglePill extends St.Widget {
+    _init() {
+        super._init({
+            style_class: 'gs-toggle',
+            layout_manager: new Clutter.FixedLayout(),
+            y_align: Clutter.ActorAlign.CENTER,
+            reactive: false,
+        });
+
+        this._knob = new St.Widget({ style_class: 'gs-toggle-knob' });
+        this._knob.set_position(3, 3);
+        this.add_child(this._knob);
+    }
+
+    setActive(active) {
+        if (active) {
+            this.add_style_class_name('active');
+            this._knob.x = 21; // 42 - 18 - 3
+        } else {
+            this.remove_style_class_name('active');
+            this._knob.x = 3;
+        }
+    }
+});
+
+// ─── SwitchRow ────────────────────────────────────────────────────────────────
+
+const SwitchRow = GObject.registerClass(
+class SwitchRow extends St.Button {
     _init(def) {
         super._init({
-            style_class: 'gs-tile',
+            style_class: 'gs-row',
             reactive: true,
             can_focus: true,
             track_hover: true,
             x_expand: true,
         });
 
-        const box = new St.BoxLayout({
-            vertical: true,
-            x_align: Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.CENTER,
-            style_class: 'gs-tile-inner',
+        const inner = new St.BoxLayout({
+            style_class: 'gs-row-inner',
+            x_expand: true,
         });
-        this.set_child(box);
+        this.set_child(inner);
 
-        this._icon = new St.Icon({
+        inner.add_child(new St.Icon({
             icon_name: def.icon,
-            icon_size: 20,
-            style_class: 'gs-tile-icon',
-        });
-        box.add_child(this._icon);
+            style_class: 'gs-row-icon',
+            y_align: Clutter.ActorAlign.CENTER,
+        }));
 
-        this._label = new St.Label({
+        const textBox = new St.BoxLayout({
+            vertical: true,
+            x_expand: true,
+            style_class: 'gs-row-text',
+            y_align: Clutter.ActorAlign.CENTER,
+        });
+        inner.add_child(textBox);
+
+        textBox.add_child(new St.Label({
             text: def.label,
-            style_class: 'gs-tile-label',
-            x_align: Clutter.ActorAlign.CENTER,
-        });
-        box.add_child(this._label);
+            style_class: 'gs-row-title',
+        }));
 
-        this._def           = def;
+        if (def.subtitle) {
+            textBox.add_child(new St.Label({
+                text: def.subtitle,
+                style_class: 'gs-row-subtitle',
+            }));
+        }
+
+        this._def = def;
         this._disconnectors = [];
+
+        if (def.type !== 'action') {
+            this._toggle = new TogglePill();
+            inner.add_child(this._toggle);
+        }
 
         if (def.watch) {
             const unsub = def.watch(() => this._syncState());
@@ -141,10 +184,12 @@ class SwitchTile extends St.Button {
 
     _syncState() {
         if (this._def.type === 'action') return;
-        if (this._def.isActive())
+        const active = this._def.isActive();
+        if (active)
             this.add_style_class_name('active');
         else
             this.remove_style_class_name('active');
+        this._toggle?.setActive(active);
     }
 });
 
@@ -153,22 +198,41 @@ class SwitchTile extends St.Button {
 const SliderRow = GObject.registerClass(
 class SliderRow extends St.BoxLayout {
     _init(def, showLabels) {
-        super._init({ style_class: 'gs-slider-row', x_expand: true });
+        super._init({ style_class: 'gs-slider-row', vertical: true, x_expand: true });
 
-        this._def   = def;
+        this._def      = def;
         this._dragging = false;
+
+        // Top line: icon + label + value
+        const top = new St.BoxLayout({ style_class: 'gs-slider-top', x_expand: true });
+        this.add_child(top);
 
         this._icon = new St.Icon({
             icon_name: def.icon,
-            icon_size: 16,
-            style_class: 'gs-slider-icon',
+            style_class: 'gs-row-icon',
             y_align: Clutter.ActorAlign.CENTER,
         });
-        this.add_child(this._icon);
+        top.add_child(this._icon);
 
-        this._slider = new Slider.Slider(def.getValue());
-        this._slider.x_expand = true;
-        this.add_child(this._slider);
+        const titleBox = new St.BoxLayout({
+            vertical: true,
+            x_expand: true,
+            style_class: 'gs-row-text',
+            y_align: Clutter.ActorAlign.CENTER,
+        });
+        top.add_child(titleBox);
+
+        titleBox.add_child(new St.Label({
+            text: def.label,
+            style_class: 'gs-row-title',
+        }));
+
+        if (def.subtitle) {
+            titleBox.add_child(new St.Label({
+                text: def.subtitle,
+                style_class: 'gs-row-subtitle',
+            }));
+        }
 
         if (showLabels) {
             this._valueLabel = new St.Label({
@@ -176,10 +240,15 @@ class SliderRow extends St.BoxLayout {
                 style_class: 'gs-slider-value',
                 y_align: Clutter.ActorAlign.CENTER,
             });
-            this.add_child(this._valueLabel);
+            top.add_child(this._valueLabel);
         }
 
-        // Slider drag → set value
+        // Bottom line: slider bar
+        this._slider = new Slider.Slider(def.getValue());
+        this._slider.x_expand = true;
+        this._slider.add_style_class_name('gs-slider');
+        this.add_child(this._slider);
+
         this._sliderId = this._slider.connect('notify::value', () => {
             if (!this._dragging) return;
             def.setValue(this._slider.value);
@@ -192,10 +261,16 @@ class SliderRow extends St.BoxLayout {
             this._updateLabel();
         });
 
-        // External changes
         this._disconnectors = [];
         if (def.watch) {
             const unsub = def.watch(() => this._syncFromExternal());
+            this._disconnectors.push(unsub);
+        }
+        if (def.watchAvailability) {
+            this.visible = def.isAvailable ? def.isAvailable() : true;
+            const unsub = def.watchAvailability(() => {
+                this.visible = def.isAvailable ? def.isAvailable() : true;
+            });
             this._disconnectors.push(unsub);
         }
 
@@ -210,10 +285,9 @@ class SliderRow extends St.BoxLayout {
     _syncFromExternal() {
         if (this._dragging) return;
         const v = this._def.getValue();
-        if (v < 0) return; // not available yet
+        if (v < 0) return;
         this._slider.value = Math.max(0, Math.min(1, v));
         this._updateLabel();
-        // Update icon for volume mute state
         if (this._def.isMuted) {
             this._icon.icon_name = this._def.isMuted()
                 ? this._def.iconMuted
@@ -238,7 +312,7 @@ class PowerModeRow extends St.BoxLayout {
     _init(ctrl) {
         super._init({ style_class: 'gs-power-row', x_expand: true });
 
-        this._ctrl = ctrl;
+        this._ctrl  = ctrl;
         this._chips = [];
 
         const lbl = new St.Label({
@@ -298,7 +372,6 @@ class MprisStrip extends St.BoxLayout {
 
         this._mpris = mpris;
 
-        // Track info
         this._trackBox = new St.BoxLayout({
             vertical: true,
             x_expand: true,
@@ -307,12 +380,11 @@ class MprisStrip extends St.BoxLayout {
         });
         this.add_child(this._trackBox);
 
-        this._titleLabel = new St.Label({ style_class: 'gs-mpris-title', x_expand: true });
+        this._titleLabel  = new St.Label({ style_class: 'gs-row-title',    x_expand: true });
+        this._artistLabel = new St.Label({ style_class: 'gs-row-subtitle',  x_expand: true });
         this._trackBox.add_child(this._titleLabel);
-        this._artistLabel = new St.Label({ style_class: 'gs-mpris-artist', x_expand: true });
         this._trackBox.add_child(this._artistLabel);
 
-        // Controls
         const ctrlBox = new St.BoxLayout({ style_class: 'gs-mpris-controls' });
         this.add_child(ctrlBox);
 
@@ -368,7 +440,6 @@ class SwitchIndicator extends PanelMenu.Button {
         this._mpris       = mpris;
         this._extSettings = extSettings;
 
-        // Panel icon
         const gicon = Gio.icon_new_for_string(
             GLib.build_filenamev([extensionPath, 'icons', 'switch-symbolic.svg']));
         this.add_child(new St.Icon({
@@ -379,21 +450,17 @@ class SwitchIndicator extends PanelMenu.Button {
         _applyAccentCss(_accentColorFor(ctrl._iface));
         this._buildMenu();
 
-        // Rebuild when settings change
         this._settingsId = extSettings.connect('changed', () => this._rebuildMenu());
 
-        // Re-apply accent + rebuild when GTK theme changes
         this._themeId = ctrl._iface.connect('changed::gtk-theme', () => {
             _applyAccentCss(_accentColorFor(ctrl._iface));
             this._rebuildMenu();
         });
 
-        // Rebuild MPRIS strip visibility when player state changes
         this._mprisId = mpris.connect('changed', () => this._syncMprisVisibility());
     }
 
     _buildMenu() {
-        // Clear existing content
         this.menu.removeAll();
 
         const item = new PopupMenu.PopupBaseMenuItem({
@@ -410,40 +477,29 @@ class SwitchIndicator extends PanelMenu.Button {
         item.add_child(container);
         this.menu.addMenuItem(item);
 
-        // ── Tile grid ───────────────────────────────────────────────────────
+        // ── Switch rows ─────────────────────────────────────────────────────
         const allDefs = getSwitchDefs(this._ctrl);
         const visible = this._extSettings.get_strv('visible-switches');
-        const columns = this._extSettings.get_int('columns');
 
         const defs = visible
             .map(id => allDefs.find(d => d.id === id))
             .filter(d => d && (d.isAvailable ? d.isAvailable() : true));
 
         if (defs.length > 0) {
-            const gridWidget = new St.Widget({
-                style_class: 'gs-grid',
+            const rowList = new St.BoxLayout({
+                vertical: true,
+                style_class: 'gs-rows',
                 x_expand: true,
-                layout_manager: new Clutter.GridLayout({
-                    orientation: Clutter.Orientation.HORIZONTAL,
-                    column_spacing: 6,
-                    row_spacing: 6,
-                    column_homogeneous: true,
-                }),
             });
-            const layout = gridWidget.layout_manager;
-
-            defs.forEach((def, i) => {
-                const tile = new SwitchTile(def);
-                layout.attach(tile, i % columns, Math.floor(i / columns), 1, 1);
-            });
-
-            container.add_child(gridWidget);
+            for (const def of defs)
+                rowList.add_child(new SwitchRow(def));
+            container.add_child(rowList);
         }
 
         // ── Sliders ─────────────────────────────────────────────────────────
-        const showLabels   = this._extSettings.get_boolean('show-value-labels');
-        const sliderDefs   = getSliderDefs(this._ctrl)
-            .filter(d => d.isAvailable ? d.isAvailable() : true);
+        const showLabels = this._extSettings.get_boolean('show-value-labels');
+        const sliderDefs = getSliderDefs(this._ctrl)
+            .filter(d => d.watchAvailability || (d.isAvailable ? d.isAvailable() : true));
 
         if (sliderDefs.length > 0) {
             container.add_child(makeSeparator());

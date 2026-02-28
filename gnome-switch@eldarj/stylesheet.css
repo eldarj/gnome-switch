@@ -1,8 +1,11 @@
 /* ── gnome-switch stylesheet ─────────────────────────────────────────────────
-   Active tile/chip background-color is set via a dynamically written CSS file
-   loaded by panel.js at runtime (gnome-switch-accent.css in /tmp), keyed off
+   Active toggle/chip background-color is set via a dynamically written CSS file
+   loaded by panel.js at runtime (/tmp/gnome-switch-accent.css), keyed off
    org.gnome.desktop.interface gtk-theme → Yaru accent hex map.
-   The values here are fallbacks only; the dynamic file always loads after and wins.
+   The #E95420 values here are static fallbacks (Yaru-dark default); the
+   dynamic file always loads after this one and wins at equal specificity.
+   Do NOT set background-color via actor.style — CSS class rules beat inline
+   styles in GNOME Shell's St toolkit.
    ─────────────────────────────────────────────────────────────────────────── */
 
 /* ── Menu container ───────────────────────────────────────────────────────── */
@@ -12,71 +15,92 @@
 }
 
 .gs-container {
-    padding: 12px;
-    min-width: 312px;
+    padding: 8px;
+    min-width: 360px;
 }
 
-/* ── Tile grid ────────────────────────────────────────────────────────────── */
+/* ── Switch rows ──────────────────────────────────────────────────────────── */
 
-.gs-grid {
-    spacing-rows: 6px;
-    spacing-columns: 6px;
+.gs-rows {
+    spacing: 0px;
 }
 
-.gs-tile {
-    background-color: rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 10px 6px 8px;
-    min-width: 88px;
-    min-height: 68px;
-    transition-duration: 100ms;
+.gs-row {
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 0;
 }
 
-.gs-tile:hover {
-    background-color: rgba(255, 255, 255, 0.14);
+.gs-rows > .gs-row:first-child {
+    border-radius: 10px 10px 0 0;
 }
 
-.gs-tile:focus {
-    background-color: rgba(255, 255, 255, 0.14);
+.gs-rows > .gs-row:last-child {
+    border-radius: 0 0 10px 10px;
 }
 
-.gs-tile.active {
-    background-color: #E95420;
-    color: white;
+.gs-row:hover {
+    background-color: rgba(255, 255, 255, 0.10);
 }
 
-.gs-tile.active:hover {
-    background-color: #E95420;
+.gs-row:focus {
+    background-color: rgba(255, 255, 255, 0.10);
 }
 
-.gs-tile-inner {
-    spacing: 4px;
+.gs-row-inner {
+    spacing: 12px;
+    padding: 10px 12px 10px 15px;
 }
 
-.gs-tile-icon {
-    icon-size: 20px;
+.gs-row-icon {
+    icon-size: 21px;
+    opacity: 0.8;
+    min-width: 26px;
 }
 
-.gs-tile.active .gs-tile-icon {
-    color: white;
+.gs-row.active .gs-row-icon {
+    opacity: 1.0;
 }
 
-.gs-tile-label {
+.gs-row-text {
+    spacing: 2px;
+}
+
+.gs-row-title {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.gs-row-subtitle {
     font-size: 10px;
-    font-weight: 500;
-    text-align: center;
+    opacity: 0.5;
 }
 
-.gs-tile.active .gs-tile-label {
-    color: white;
+/* ── Toggle pill ──────────────────────────────────────────────────────────── */
+
+.gs-toggle {
+    width: 38px;
+    height: 21px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.gs-toggle.active {
+    background-color: #E95420; /* fallback; overridden by dynamic accent CSS */
+}
+
+.gs-toggle-knob {
+    width: 15px;
+    height: 15px;
+    border-radius: 9px;
+    background-color: white;
 }
 
 /* ── Separator ────────────────────────────────────────────────────────────── */
 
 .gs-separator {
-    background-color: rgba(255, 255, 255, 0.10);
+    background-color: rgba(255, 255, 255, 0.1);
     height: 1px;
-    margin: 8px 0;
+    margin: 15px 5px;
 }
 
 /* ── Sliders ──────────────────────────────────────────────────────────────── */
@@ -86,14 +110,14 @@
 }
 
 .gs-slider-row {
-    spacing: 8px;
-    padding: 2px 0;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 10px 12px 8px;
+    spacing: 6px;
 }
 
-.gs-slider-icon {
-    icon-size: 16px;
-    opacity: 0.8;
-    min-width: 18px;
+.gs-slider-top {
+    spacing: 12px;
 }
 
 .gs-slider-value {
@@ -107,14 +131,14 @@
 
 .gs-power-row {
     spacing: 8px;
-    padding: 4px 0;
+    padding: 4px 2px;
 }
 
 .gs-power-label {
     font-size: 11px;
     font-weight: 600;
     min-width: 44px;
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
 .gs-chip-box {
@@ -135,7 +159,7 @@
 }
 
 .gs-chip.active {
-    background-color: #E95420;
+    background-color: #E95420; /* fallback; overridden by dynamic accent CSS */
     color: white;
 }
 
@@ -143,21 +167,11 @@
 
 .gs-mpris {
     spacing: 8px;
-    padding: 4px 0;
+    padding: 4px 2px;
 }
 
 .gs-mpris-track {
-    spacing: 1px;
-}
-
-.gs-mpris-title {
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.gs-mpris-artist {
-    font-size: 10px;
-    opacity: 0.65;
+    spacing: 2px;
 }
 
 .gs-mpris-controls {
