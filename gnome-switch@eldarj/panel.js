@@ -433,12 +433,13 @@ function makeSeparator() {
 
 export const SwitchIndicator = GObject.registerClass(
 class SwitchIndicator extends PanelMenu.Button {
-    _init(extensionPath, extSettings, ctrl, mpris) {
+    _init(extensionPath, extSettings, ctrl, mpris, ext) {
         super._init(0.0, 'Switch', false);
 
         this._ctrl        = ctrl;
         this._mpris       = mpris;
         this._extSettings = extSettings;
+        this._ext         = ext;
 
         const gicon = Gio.icon_new_for_string(
             GLib.build_filenamev([extensionPath, 'icons', 'switch-symbolic.svg']));
@@ -520,10 +521,14 @@ class SwitchIndicator extends PanelMenu.Button {
         }
 
         // ── MPRIS strip ─────────────────────────────────────────────────────
-        container.add_child(makeSeparator());
+        this._mprisSep = makeSeparator();
+        container.add_child(this._mprisSep);
         this._mprisStrip = new MprisStrip(this._mpris);
         container.add_child(this._mprisStrip);
         this._syncMprisVisibility();
+
+        // ── Footer ──────────────────────────────────────────────────────────
+        this._buildFooter(container);
     }
 
     _rebuildMenu() {
@@ -531,8 +536,41 @@ class SwitchIndicator extends PanelMenu.Button {
     }
 
     _syncMprisVisibility() {
-        if (this._mprisStrip)
-            this._mprisStrip.visible = this._mpris.hasPlayer();
+        if (!this._mprisStrip) return;
+        const visible = this._mpris.hasPlayer();
+        this._mprisStrip.visible = visible;
+        if (this._mprisSep) this._mprisSep.visible = visible;
+    }
+
+    _buildFooter(container) {
+        container.add_child(makeSeparator());
+
+        const btn = new St.Button({
+            style_class: 'gs-footer-btn',
+            x_expand: true,
+            can_focus: true,
+            track_hover: true,
+        });
+        const inner = new St.BoxLayout({ style_class: 'gs-footer-inner' });
+        inner.add_child(new St.Icon({
+            icon_name: 'preferences-system-symbolic',
+            style_class: 'gs-row-icon',
+            y_align: Clutter.ActorAlign.CENTER,
+        }));
+        inner.add_child(new St.Label({
+            text: 'Settings',
+            style_class: 'gs-row-title',
+            y_align: Clutter.ActorAlign.CENTER,
+            x_expand: true,
+        }));
+        btn.set_child(inner);
+
+        btn.connect('clicked', () => {
+            this.menu.close();
+            this._ext?.openPreferences();
+        });
+
+        container.add_child(btn);
     }
 
     _onDestroy() {

@@ -771,7 +771,8 @@ export function getSliderDefs(ctrl) {
             setValue:    v  => ctrl.setVolume(v),
             isMuted:     () => ctrl.isOutputMuted(),
             watch:       cb  => { const id = ctrl.connect('volume-changed', cb); return () => ctrl.disconnect(id); },
-            isAvailable: () => ctrl._mixerReady,
+            isAvailable:       () => ctrl._mixerReady,
+            watchAvailability: cb => { const id = ctrl.connect('volume-changed', cb); return () => ctrl.disconnect(id); },
             min: 0, max: 1,
         },
         {

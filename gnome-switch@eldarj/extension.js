@@ -17,7 +17,8 @@ export default class GnomeSwitchExtension extends Extension {
             this.path,
             this.getSettings(),
             this._ctrl,
-            this._mpris);
+            this._mpris,
+            this);
         Main.panel.addToStatusArea('gnome-switch', this._indicator);
     }
 

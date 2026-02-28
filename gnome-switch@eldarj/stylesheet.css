@@ -190,3 +190,21 @@
 .gs-mpris-btn:hover {
     background-color: rgba(255, 255, 255, 0.16);
 }
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+
+.gs-footer-btn {
+    border-radius: 8px;
+    padding: 0;
+    opacity: 0.65;
+}
+
+.gs-footer-btn:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    opacity: 1;
+}
+
+.gs-footer-inner {
+    spacing: 12px;
+    padding: 9px 12px 9px 15px;
+}
