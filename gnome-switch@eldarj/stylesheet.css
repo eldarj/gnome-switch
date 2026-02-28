@@ -1,0 +1,176 @@
+/* ── gnome-switch stylesheet ─────────────────────────────────────────────────
+   GNOME 46 — uses explicit fallback colours since var(--accent-bg-color)
+   landed in GNOME 47.  Active state uses the standard GNOME blue #3584e4.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Menu container ───────────────────────────────────────────────────────── */
+
+.gs-menu-item {
+    padding: 0;
+}
+
+.gs-container {
+    padding: 12px;
+    min-width: 312px;
+}
+
+/* ── Tile grid ────────────────────────────────────────────────────────────── */
+
+.gs-grid {
+    spacing-rows: 6px;
+    spacing-columns: 6px;
+}
+
+.gs-tile {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 10px 6px 8px;
+    min-width: 88px;
+    min-height: 68px;
+    transition-duration: 100ms;
+}
+
+.gs-tile:hover {
+    background-color: rgba(255, 255, 255, 0.14);
+}
+
+.gs-tile:focus {
+    background-color: rgba(255, 255, 255, 0.14);
+}
+
+.gs-tile.active {
+    background-color: #3584e4;
+    color: white;
+}
+
+.gs-tile.active:hover {
+    background-color: #4a97f4;
+}
+
+.gs-tile-inner {
+    spacing: 4px;
+}
+
+.gs-tile-icon {
+    icon-size: 20px;
+}
+
+.gs-tile.active .gs-tile-icon {
+    color: white;
+}
+
+.gs-tile-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.gs-tile.active .gs-tile-label {
+    color: white;
+}
+
+/* ── Separator ────────────────────────────────────────────────────────────── */
+
+.gs-separator {
+    background-color: rgba(255, 255, 255, 0.10);
+    height: 1px;
+    margin: 8px 0;
+}
+
+/* ── Sliders ──────────────────────────────────────────────────────────────── */
+
+.gs-sliders {
+    spacing: 4px;
+}
+
+.gs-slider-row {
+    spacing: 8px;
+    padding: 2px 0;
+}
+
+.gs-slider-icon {
+    icon-size: 16px;
+    opacity: 0.8;
+    min-width: 18px;
+}
+
+.gs-slider-value {
+    font-size: 10px;
+    min-width: 32px;
+    text-align: right;
+    opacity: 0.7;
+}
+
+/* ── Power mode row ───────────────────────────────────────────────────────── */
+
+.gs-power-row {
+    spacing: 8px;
+    padding: 4px 0;
+}
+
+.gs-power-label {
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 44px;
+    opacity: 0.7;
+}
+
+.gs-chip-box {
+    spacing: 4px;
+}
+
+.gs-chip {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 10px;
+    font-weight: 500;
+    transition-duration: 100ms;
+}
+
+.gs-chip:hover {
+    background-color: rgba(255, 255, 255, 0.14);
+}
+
+.gs-chip.active {
+    background-color: #3584e4;
+    color: white;
+}
+
+/* ── MPRIS strip ──────────────────────────────────────────────────────────── */
+
+.gs-mpris {
+    spacing: 8px;
+    padding: 4px 0;
+}
+
+.gs-mpris-track {
+    spacing: 1px;
+}
+
+.gs-mpris-title {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.gs-mpris-artist {
+    font-size: 10px;
+    opacity: 0.65;
+}
+
+.gs-mpris-controls {
+    spacing: 2px;
+}
+
+.gs-mpris-btn {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 4px;
+    min-width: 28px;
+    min-height: 28px;
+    transition-duration: 100ms;
+}
+
+.gs-mpris-btn:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+}
