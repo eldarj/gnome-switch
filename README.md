@@ -15,6 +15,9 @@ Click the toggle icon in the top bar to open a dropdown with:
 
 Settings changes take effect immediately — no shell restart needed.
 
+Active toggle tiles and power chips automatically use the system accent color
+(Yaru theme variants on Ubuntu; falls back to GNOME blue on other themes).
+
 
 ## Supported GNOME versions
 

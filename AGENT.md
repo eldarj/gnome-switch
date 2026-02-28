@@ -21,7 +21,7 @@ Target: GNOME 46–49.  Language: GJS ESM (ES modules via `import/export`).
 | `mpris.js` | `MprisController` (GObject) — watches `NameOwnerChanged`, tracks best player, emits `'changed'` |
 | `panel.js` | `SwitchIndicator` extends `PanelMenu.Button` — builds tile grid, sliders, power chips, MPRIS strip |
 | `prefs.js` | `ExtensionPreferences` subclass — GTK4 + Adwaita prefs window |
-| `stylesheet.css` | All St CSS.  GNOME 46: no `var(--accent-bg-color)`; active tiles use hardcoded `#3584e4` |
+| `stylesheet.css` | All St CSS.  Active tile/chip color is set via inline style in `panel.js`; the `#3584e4` values in CSS are unreachable fallbacks. |
 | `schemas/` | GSettings schema id `org.gnome.shell.extensions.gnome-switch` |
 
 
@@ -112,14 +112,17 @@ Tiles/sliders are hidden (not just disabled) when their service is unavailable:
 - MPRIS strip → `mpris.hasPlayer()` (toggled live, not on rebuild)
 
 The panel rebuilds itself when extension GSettings change
-(`SwitchIndicator._rebuildMenu`).
+(`SwitchIndicator._rebuildMenu`), and also when `org.gnome.desktop.interface`
+`gtk-theme` changes (accent color switch).
 
 
 ## CSS conventions
 
 - All class names prefixed `gs-` to avoid collisions.
-- Active tile: `.gs-tile.active` → `background-color: #3584e4` (GNOME blue).
-  When targeting GNOME 47+, replace with `var(--accent-bg-color)`.
+- Active tile/chip color is **not** driven by CSS. `panel.js` reads
+  `org.gnome.desktop.interface gtk-theme`, maps the Yaru variant to a hex via
+  `YARU_ACCENT`, and sets `widget.style = 'background-color: <hex>;'` inline.
+  The `#3584e4` values in stylesheet.css are unreachable fallbacks.
 - Do not use `flex` — use `St.BoxLayout` + `Clutter.GridLayout`.
 
 
@@ -147,5 +150,7 @@ gnome-extensions enable gnome-switch@eldarj
 
 - VPN toggle connects the *first* VPN profile found in NM; no profile picker yet.
 - `visible-switches` order in prefs is checkbox-only (no drag-to-reorder) — v1 simplification.
-- `var(--accent-bg-color)` not used; hardcoded blue for GNOME 46 compatibility.
+- Active tile hover color is not themed (`:hover` CSS cannot override inline style);
+  a lightened accent variant could be computed in JS if desired.
 - Night-light temperature slider range is 1700–4700 K (practical range); GSettings stores 1000–10000.
+- GitHub repo `eldarj/gnome-switch` not created yet — no remote configured.

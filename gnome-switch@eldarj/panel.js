@@ -18,11 +18,41 @@ import * as Slider from 'resource:///org/gnome/shell/ui/slider.js';
 
 import { getSwitchDefs, getSliderDefs } from './switches.js';
 
+// ─── Accent color (Yaru theme → hex) ─────────────────────────────────────────
+
+const YARU_ACCENT = {
+    'Yaru':                    '#E95420',
+    'Yaru-dark':               '#E95420',
+    'Yaru-bark':               '#787859',
+    'Yaru-bark-dark':          '#787859',
+    'Yaru-blue':               '#0073E5',
+    'Yaru-blue-dark':          '#0073E5',
+    'Yaru-magenta':            '#B34CB3',
+    'Yaru-magenta-dark':       '#B34CB3',
+    'Yaru-olive':              '#4B8501',
+    'Yaru-olive-dark':         '#4B8501',
+    'Yaru-prussiangreen':      '#308280',
+    'Yaru-prussiangreen-dark': '#308280',
+    'Yaru-purple':             '#7764D8',
+    'Yaru-purple-dark':        '#7764D8',
+    'Yaru-red':                '#DA3450',
+    'Yaru-red-dark':           '#DA3450',
+    'Yaru-sage':               '#657B69',
+    'Yaru-sage-dark':          '#657B69',
+    'Yaru-viridian':           '#03875B',
+    'Yaru-viridian-dark':      '#03875B',
+};
+
+function _accentColorFor(iface) {
+    const theme = iface.get_string('gtk-theme');
+    return YARU_ACCENT[theme] ?? '#3584e4';
+}
+
 // ─── SwitchTile ───────────────────────────────────────────────────────────────
 
 const SwitchTile = GObject.registerClass(
 class SwitchTile extends St.Button {
-    _init(def) {
+    _init(def, getAccent) {
         super._init({
             style_class: 'gs-tile',
             reactive: true,
@@ -54,6 +84,7 @@ class SwitchTile extends St.Button {
         box.add_child(this._label);
 
         this._def          = def;
+        this._getAccent    = getAccent;
         this._disconnectors = [];
 
         if (def.watch) {
@@ -76,10 +107,13 @@ class SwitchTile extends St.Button {
 
     _syncState() {
         if (this._def.type === 'action') return;
-        if (this._def.isActive())
+        if (this._def.isActive()) {
             this.add_style_class_name('active');
-        else
+            this.style = `background-color: ${this._getAccent()};`;
+        } else {
             this.remove_style_class_name('active');
+            this.style = null;
+        }
     }
 });
 
@@ -170,10 +204,11 @@ class SliderRow extends St.BoxLayout {
 
 const PowerModeRow = GObject.registerClass(
 class PowerModeRow extends St.BoxLayout {
-    _init(ctrl) {
+    _init(ctrl, getAccent) {
         super._init({ style_class: 'gs-power-row', x_expand: true });
 
         this._ctrl = ctrl;
+        this._getAccent = getAccent;
         this._chips = [];
 
         const lbl = new St.Label({
@@ -216,10 +251,13 @@ class PowerModeRow extends St.BoxLayout {
     _syncChips() {
         const active = this._ctrl.getPowerProfile();
         for (const { btn, id } of this._chips) {
-            if (id === active)
+            if (id === active) {
                 btn.add_style_class_name('active');
-            else
+                btn.style = `background-color: ${this._getAccent()};`;
+            } else {
                 btn.remove_style_class_name('active');
+                btn.style = null;
+            }
         }
     }
 });
@@ -316,6 +354,9 @@ class SwitchIndicator extends PanelMenu.Button {
         // Rebuild when settings change
         this._settingsId = extSettings.connect('changed', () => this._rebuildMenu());
 
+        // Rebuild when the GTK theme (= accent color) changes
+        this._themeId = ctrl._iface.connect('changed::gtk-theme', () => this._rebuildMenu());
+
         // Rebuild MPRIS strip visibility when player state changes
         this._mprisId = mpris.connect('changed', () => this._syncMprisVisibility());
     }
@@ -337,6 +378,8 @@ class SwitchIndicator extends PanelMenu.Button {
         });
         item.add_child(container);
         this.menu.addMenuItem(item);
+
+        const getAccent = () => _accentColorFor(this._ctrl._iface);
 
         // ── Tile grid ───────────────────────────────────────────────────────
         const allDefs = getSwitchDefs(this._ctrl);
@@ -361,7 +404,7 @@ class SwitchIndicator extends PanelMenu.Button {
             const layout = gridWidget.layout_manager;
 
             defs.forEach((def, i) => {
-                const tile = new SwitchTile(def);
+                const tile = new SwitchTile(def, getAccent);
                 layout.attach(tile, i % columns, Math.floor(i / columns), 1, 1);
             });
 
@@ -388,7 +431,7 @@ class SwitchIndicator extends PanelMenu.Button {
         // ── Power mode ──────────────────────────────────────────────────────
         if (this._ctrl.hasPowerProfiles()) {
             container.add_child(makeSeparator());
-            container.add_child(new PowerModeRow(this._ctrl));
+            container.add_child(new PowerModeRow(this._ctrl, getAccent));
         }
 
         // ── MPRIS strip ─────────────────────────────────────────────────────
@@ -411,6 +454,10 @@ class SwitchIndicator extends PanelMenu.Button {
         if (this._settingsId) {
             this._extSettings.disconnect(this._settingsId);
             this._settingsId = null;
+        }
+        if (this._themeId) {
+            this._ctrl._iface.disconnect(this._themeId);
+            this._themeId = null;
         }
         if (this._mprisId) {
             this._mpris.disconnect(this._mprisId);

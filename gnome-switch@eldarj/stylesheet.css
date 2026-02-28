@@ -1,6 +1,7 @@
 /* ── gnome-switch stylesheet ─────────────────────────────────────────────────
-   GNOME 46 — uses explicit fallback colours since var(--accent-bg-color)
-   landed in GNOME 47.  Active state uses the standard GNOME blue #3584e4.
+   Active tile/chip background-color is set via inline style in panel.js,
+   keyed off org.gnome.desktop.interface gtk-theme (Yaru variant → hex map).
+   The #3584e4 values below are never-reached fallbacks only.
    ─────────────────────────────────────────────────────────────────────────── */
 
 /* ── Menu container ───────────────────────────────────────────────────────── */
